@@ -2,12 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Build / Setup venv') {
             steps {
-                echo 'Installing dependencies...'
+                echo 'Creating virtualenv and installing dependencies...'
                 sh '''
-                    python3 -m pip install --upgrade pip
-                    pip3 install -r requirements.txt
+                    # Create virtual environment in ./venv
+                    python3 -m venv venv
+
+                    # Activate venv
+                    . venv/bin/activate
+
+                    # Upgrade pip inside venv
+                    pip install --upgrade pip
+
+                    # Install project dependencies
+                    pip install -r requirements.txt
                 '''
             }
         }
@@ -15,14 +24,20 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running unit tests...'
-                sh 'python3 -m unittest discover -s .'
+                sh '''
+                    . venv/bin/activate
+                    python -m unittest discover -s .
+                '''
             }
         }
 
         stage('Code Quality') {
             steps {
                 echo 'Running code quality checks...'
-                sh 'flake8 .'
+                sh '''
+                    . venv/bin/activate
+                    flake8 .
+                '''
             }
         }
 
@@ -41,7 +56,10 @@ pipeline {
                 echo 'Running application...'
                 sh '''
                     cd "${WORKSPACE}/python-app-deploy"
-                    nohup python3 app.py > app.log 2>&1 &
+                    # activate venv from parent folder
+                    . ../venv/bin/activate
+
+                    nohup python app.py > app.log 2>&1 &
                     echo $! > app.pid
                 '''
             }
@@ -50,7 +68,10 @@ pipeline {
         stage('Test Application') {
             steps {
                 echo 'Testing running application...'
-                sh 'python3 test_app.py'
+                sh '''
+                    . venv/bin/activate
+                    python test_app.py
+                '''
             }
         }
     }
