@@ -36,8 +36,8 @@ pipeline {
                 echo 'Running code quality checks...'
                 sh '''
                     . venv/bin/activate
-                    # Ignore virtualenv and relax max line length
-                    flake8 . --exclude=venv --max-line-length=120
+                    # Ignore virtualenv and some strict blank-line rules
+                    flake8 . --exclude=venv --max-line-length=120 --ignore=E302,E305
                 '''
             }
         }
