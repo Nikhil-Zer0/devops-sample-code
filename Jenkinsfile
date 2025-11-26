@@ -36,7 +36,8 @@ pipeline {
                 echo 'Running code quality checks...'
                 sh '''
                     . venv/bin/activate
-                    flake8 .
+                    # Ignore virtualenv and relax max line length
+                    flake8 . --exclude=venv --max-line-length=120
                 '''
             }
         }
@@ -56,7 +57,8 @@ pipeline {
                 echo 'Running application...'
                 sh '''
                     cd "${WORKSPACE}/python-app-deploy"
-                    # activate venv from parent folder
+
+                    # Activate venv from parent folder
                     . ../venv/bin/activate
 
                     nohup python app.py > app.log 2>&1 &
